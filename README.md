@@ -6,14 +6,22 @@ A lightweight CLI tool for managing git worktrees with automatic file syncing an
 
 ```bash
 uv tool install git-wt
+# or
+pipx install git-wt
+# or
+pip install git-wt
 ```
 
 ## Usage
 
 ```bash
 cd your-repo
-git-wt
+git wt        # as a git subcommand
+# or
+git-wt        # standalone
 ```
+
+On first run, you'll be prompted to create a config file.
 
 ## Features
 
@@ -26,7 +34,7 @@ git-wt
 
 ## Config
 
-Create `.git-wt.toml` in your repo root:
+On first run, `git-wt` will prompt you to create `.git-wt.toml` in your repo root:
 
 ```toml
 [files]
@@ -36,6 +44,20 @@ paths = [".env", ".envrc"]
 [hooks]
 post_create = ["./setup.sh"]
 ```
+
+### Options
+
+- `files.mode`: `"copy"` (default) or `"symlink"`
+- `files.paths`: List of files/directories to sync to new worktrees
+- `hooks.post_create`: List of scripts to run after creating a worktree
+
+## Why?
+
+When working with git worktrees, you often need to:
+1. Copy environment files (.env, .envrc) to each new worktree
+2. Run setup scripts (install dependencies, etc.)
+
+`git-wt` automates this workflow.
 
 ## License
 
