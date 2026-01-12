@@ -18,13 +18,17 @@ def generate_worktree_path(repo_root: Path, branch: str) -> Path:
     return repo_root.parent / f"{repo_name}-{sanitized}"
 
 
-def copy_files(source_root: Path, target_root: Path, paths: list[str]) -> list[str]:
+def copy_files(
+    source_root: Path, target_root: Path, paths: list[str]
+) -> tuple[list[str], list[str]]:
     copied = []
+    skipped = []
     for path_str in paths:
         source = source_root / path_str
         target = target_root / path_str
 
         if not source.exists():
+            skipped.append(path_str)
             continue
 
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -38,16 +42,20 @@ def copy_files(source_root: Path, target_root: Path, paths: list[str]) -> list[s
 
         copied.append(path_str)
 
-    return copied
+    return copied, skipped
 
 
-def symlink_files(source_root: Path, target_root: Path, paths: list[str]) -> list[str]:
+def symlink_files(
+    source_root: Path, target_root: Path, paths: list[str]
+) -> tuple[list[str], list[str]]:
     linked = []
+    skipped = []
     for path_str in paths:
         source = source_root / path_str
         target = target_root / path_str
 
         if not source.exists():
+            skipped.append(path_str)
             continue
 
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -63,7 +71,7 @@ def symlink_files(source_root: Path, target_root: Path, paths: list[str]) -> lis
         target.symlink_to(source.resolve())
         linked.append(path_str)
 
-    return linked
+    return linked, skipped
 
 
 def create_worktree(
@@ -71,7 +79,7 @@ def create_worktree(
     branch: str,
     worktree_path: Path,
     config: Config,
-) -> tuple[list[str], bool]:
+) -> tuple[list[str], list[str], bool]:
     is_new_branch = not git.branch_exists(branch, cwd=repo_root)
 
     if is_new_branch:
@@ -83,8 +91,12 @@ def create_worktree(
         git.add_worktree(worktree_path, branch, cwd=repo_root)
 
     if config.file_mode == "symlink":
-        synced_files = symlink_files(repo_root, worktree_path, config.file_paths)
+        synced_files, skipped_files = symlink_files(
+            repo_root, worktree_path, config.file_paths
+        )
     else:
-        synced_files = copy_files(repo_root, worktree_path, config.file_paths)
+        synced_files, skipped_files = copy_files(
+            repo_root, worktree_path, config.file_paths
+        )
 
-    return synced_files, is_new_branch
+    return synced_files, skipped_files, is_new_branch

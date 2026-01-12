@@ -166,12 +166,17 @@ def new_worktree(repo_root: Path, config: Config) -> None:
     console.print()
 
     try:
-        synced_files, is_new = create_worktree(repo_root, branch, worktree_path, config)
+        synced_files, skipped_files, is_new = create_worktree(
+            repo_root, branch, worktree_path, config
+        )
         console.print("[green]✓ Worktree created[/green]")
 
         if synced_files:
             mode_verb = "Linked" if config.file_mode == "symlink" else "Copied"
             console.print(f"[green]✓ {mode_verb}: {', '.join(synced_files)}[/green]")
+
+        if skipped_files:
+            console.print(f"[yellow]⚠ Not found: {', '.join(skipped_files)}[/yellow]")
 
         if config.post_create_hooks:
             run_hooks(worktree_path, config.post_create_hooks, console)
@@ -181,20 +186,6 @@ def new_worktree(repo_root: Path, config: Config) -> None:
 
     except git.GitError as e:
         console.print(f"[red]✗ {e}[/red]")
-        return
-
-    console.print()
-
-    action = questionary.select(
-        "",
-        choices=[
-            questionary.Choice("Done", value="done"),
-            questionary.Choice("Open in Finder", value="open"),
-        ],
-    ).ask()
-
-    if action == "open":
-        open_in_finder(worktree_path)
 
 
 def list_worktrees(repo_root: Path) -> None:
@@ -215,6 +206,8 @@ def list_worktrees(repo_root: Path) -> None:
 
         if wt.is_bare:
             status = "bare"
+        elif not wt.path.exists():
+            status = "[red]missing[/red]"
         elif git.is_dirty(wt.path):
             status = "[yellow]dirty[/yellow]"
         else:
@@ -293,21 +286,20 @@ def main() -> int:
         if config is None:
             return 0
 
-    while True:
-        action = main_menu(repo_root, config)
+    action = main_menu(repo_root, config)
 
-        if action is None or action == "quit":
-            break
-        elif action == "new":
-            new_worktree(repo_root, config)
-        elif action == "list":
-            list_worktrees(repo_root)
-        elif action == "remove":
-            remove_worktree(repo_root)
-        elif action == "config":
-            updated = edit_config(repo_root, config)
-            if updated:
-                config = updated
+    if action is None or action == "quit":
+        return 0
+    elif action == "new":
+        new_worktree(repo_root, config)
+    elif action == "list":
+        list_worktrees(repo_root)
+    elif action == "remove":
+        remove_worktree(repo_root)
+    elif action == "config":
+        updated = edit_config(repo_root, config)
+        if updated:
+            config = updated
 
     return 0
 

@@ -115,6 +115,8 @@ def get_worktrees(cwd: Path | None = None) -> list[Worktree]:
 
 
 def is_dirty(path: Path) -> bool:
+    if not path.exists():
+        return False
     result = _run(["status", "--porcelain"], cwd=path)
     if result.returncode != 0:
         return False
