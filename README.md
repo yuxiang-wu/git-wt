@@ -1,5 +1,7 @@
 # git-wt
 
+[![PyPI version](https://badge.fury.io/py/git-wt.svg)](https://pypi.org/project/git-wt/)
+
 A lightweight CLI tool for managing git worktrees with automatic file syncing and post-create hooks.
 
 ## Install
