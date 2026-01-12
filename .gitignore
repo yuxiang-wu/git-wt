@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+*.egg-info/
+.ruff_cache/
+.envrc
+.git-wt.toml
