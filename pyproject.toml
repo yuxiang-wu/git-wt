@@ -31,8 +31,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yuxiang/git-wt"
-Repository = "https://github.com/yuxiang/git-wt"
+Homepage = "https://github.com/yuxiang-wu/git-wt"
+Repository = "https://github.com/yuxiang-wu/git-wt"
 
 [project.scripts]
 git-wt = "git_wt.cli:main"
