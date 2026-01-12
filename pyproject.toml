@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 authors = [
-    { name = "Yuxiang", email = "yuxiang@example.com" },
+    { name = "Yuxiang Wu", email = "yuxiang.cs@gmail.com" },
 ]
 keywords = ["git", "worktree", "cli", "productivity"]
 classifiers = [
@@ -33,6 +33,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/yuxiang-wu/git-wt"
 Repository = "https://github.com/yuxiang-wu/git-wt"
+Issues = "https://github.com/yuxiang-wu/git-wt/issues"
 
 [project.scripts]
 git-wt = "git_wt.cli:main"
