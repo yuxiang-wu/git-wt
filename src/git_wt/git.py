@@ -183,3 +183,16 @@ def remove_worktree(path: Path, force: bool = False, cwd: Path | None = None) ->
 def branch_exists(branch: str, cwd: Path | None = None) -> bool:
     result = _run(["rev-parse", "--verify", f"refs/heads/{branch}"], cwd=cwd)
     return result.returncode == 0
+
+def get_main_worktree(cwd: Path | None = None) -> Path:
+    """Get the main (first) worktree path. Works from any worktree."""
+    worktrees = get_worktrees(cwd=cwd)
+    if not worktrees:
+        raise GitError("No worktrees found")
+    return worktrees[0].path
+
+
+def is_main_worktree(path: Path, cwd: Path | None = None) -> bool:
+    """Check if the given path is the main worktree."""
+    main = get_main_worktree(cwd=cwd)
+    return path.resolve() == main.resolve()

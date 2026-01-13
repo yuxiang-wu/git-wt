@@ -294,33 +294,32 @@ def main_menu(repo_root: Path, config: Config) -> str | None:
         ],
     ).ask()
 
-
 def main() -> int:
     try:
-        repo_root = git.get_repo_root()
+        main_worktree = git.get_main_worktree()
     except git.GitError:
         console.print("[red]✗ Not a git repository[/red]")
         return 1
 
-    if config_exists(repo_root):
-        config = load_config(repo_root)
+    if config_exists(main_worktree):
+        config = load_config(main_worktree)
     else:
-        config = setup_config(repo_root)
+        config = setup_config(main_worktree)
         if config is None:
             return 0
 
-    action = main_menu(repo_root, config)
+    action = main_menu(main_worktree, config)
 
     if action is None or action == "quit":
         return 0
     elif action == "new":
-        new_worktree(repo_root, config)
+        new_worktree(main_worktree, config)
     elif action == "list":
-        list_worktrees(repo_root)
+        list_worktrees(main_worktree)
     elif action == "remove":
-        remove_worktree(repo_root)
+        remove_worktree(main_worktree)
     elif action == "config":
-        updated = edit_config(repo_root, config)
+        updated = edit_config(main_worktree, config)
         if updated:
             config = updated
 
