@@ -35,11 +35,34 @@ def get_repo_root(cwd: Path | None = None) -> Path:
     return Path(result.stdout.strip())
 
 
-def get_branches(cwd: Path | None = None) -> list[str]:
-    result = _run(["branch", "--list", "--format=%(refname:short)"], cwd=cwd)
-    if result.returncode != 0:
-        return []
-    return [b.strip() for b in result.stdout.strip().split("\n") if b.strip()]
+def get_branches(cwd: Path | None = None, include_remote: bool = True) -> list[str]:
+    seen = set()
+    branches = []
+
+    local = _run(["branch", "--list", "--format=%(refname:short)"], cwd=cwd)
+    if local.returncode == 0:
+        for b in local.stdout.strip().split("\n"):
+            b = b.strip()
+            if b and b not in seen:
+                seen.add(b)
+                branches.append(b)
+
+    if include_remote:
+        remote = _run(["branch", "-r", "--format=%(refname:short)"], cwd=cwd)
+        if remote.returncode == 0:
+            for b in remote.stdout.strip().split("\n"):
+                b = b.strip()
+                if not b or "/HEAD" in b:
+                    continue
+                for prefix in ("origin/",):
+                    if b.startswith(prefix):
+                        b = b[len(prefix) :]
+                        break
+                if b and b not in seen:
+                    seen.add(b)
+                    branches.append(b)
+
+    return branches
 
 
 def get_default_branch(cwd: Path | None = None) -> str:
