@@ -170,6 +170,24 @@ def new_worktree(repo_root: Path, config: Config) -> None:
         return
 
     branch = branch.strip()
+    
+    # Check if this is a new branch
+    is_new_branch = not git.branch_exists(branch, cwd=repo_root)
+    base_branch = None
+    
+    if is_new_branch:
+        default_base = git.get_default_branch(cwd=repo_root)
+        base_branch = questionary.autocomplete(
+            "Create from branch:",
+            choices=branches,
+            default=default_base,
+            validate=lambda x: len(x.strip()) > 0 or "Base branch required",
+        ).ask()
+        
+        if base_branch is None:
+            return
+        base_branch = base_branch.strip()
+
     default_path = generate_worktree_path(repo_root, branch)
 
     path_input = questionary.text(
@@ -189,8 +207,8 @@ def new_worktree(repo_root: Path, config: Config) -> None:
     console.print()
 
     try:
-        synced_files, skipped_files, is_new = create_worktree(
-            repo_root, branch, worktree_path, config
+        synced_files, skipped_files, _ = create_worktree(
+            repo_root, branch, worktree_path, config, base_branch=base_branch
         )
         console.print("[green]✓ Worktree created[/green]")
 
@@ -199,7 +217,9 @@ def new_worktree(repo_root: Path, config: Config) -> None:
             console.print(f"[green]✓ {mode_verb}: {', '.join(synced_files)}[/green]")
 
         if skipped_files:
-            console.print(f"[yellow]⚠ Not found: {', '.join(skipped_files)}[/yellow]")
+            console.print(
+                f"[yellow]⚠ Not found: {', '.join(skipped_files)}[/yellow]"
+            )
 
         if config.post_create_hooks:
             run_hooks(worktree_path, config.post_create_hooks, console)

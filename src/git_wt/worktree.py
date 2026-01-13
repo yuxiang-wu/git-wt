@@ -79,13 +79,15 @@ def create_worktree(
     branch: str,
     worktree_path: Path,
     config: Config,
+    base_branch: str | None = None,
 ) -> tuple[list[str], list[str], bool]:
     is_new_branch = not git.branch_exists(branch, cwd=repo_root)
 
     if is_new_branch:
-        base = git.get_default_branch(cwd=repo_root)
+        if base_branch is None:
+            base_branch = git.get_default_branch(cwd=repo_root)
         git.add_worktree(
-            worktree_path, branch, new_branch=True, base=base, cwd=repo_root
+            worktree_path, branch, new_branch=True, base=base_branch, cwd=repo_root
         )
     else:
         git.add_worktree(worktree_path, branch, cwd=repo_root)
