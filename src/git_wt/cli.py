@@ -16,16 +16,39 @@ console = Console()
 
 def copy_to_clipboard(text: str) -> bool:
     try:
-        subprocess.run(["pbcopy"], input=text.encode(), check=True)
+        subprocess.run(
+            ["pbcopy"],
+            input=text.encode(),
+            check=True,
+            stderr=subprocess.DEVNULL,
+        )
         return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        try:
-            subprocess.run(
-                ["xclip", "-selection", "clipboard"], input=text.encode(), check=True
-            )
-            return True
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            return False
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        pass
+
+    try:
+        subprocess.run(
+            ["xclip", "-selection", "clipboard"],
+            input=text.encode(),
+            check=True,
+            stderr=subprocess.DEVNULL,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        pass
+
+    try:
+        subprocess.run(
+            ["xsel", "--clipboard", "--input"],
+            input=text.encode(),
+            check=True,
+            stderr=subprocess.DEVNULL,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        pass
+
+    return False
 
 
 def open_in_finder(path: Path) -> bool:

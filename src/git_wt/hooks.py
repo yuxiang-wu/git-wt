@@ -1,4 +1,5 @@
 from pathlib import Path
+import shlex
 import subprocess
 
 from rich.console import Console
@@ -12,18 +13,19 @@ def run_hooks(
     for hook in hooks:
         hook_path = worktree_path / hook
 
-        if not hook_path.exists():
-            console.print(f"  [yellow]⚠ Hook not found: {hook}[/yellow]")
-            results.append((hook, False))
-            continue
+        if hook_path.exists():
+            cmd = [str(hook_path)]
+        else:
+            cmd = shlex.split(hook)
 
         console.print(f"  [dim]Running: {hook}[/dim]")
 
         result = subprocess.run(
-            [str(hook_path)],
+            cmd,
             cwd=worktree_path,
             capture_output=True,
             text=True,
+            shell=False,
         )
 
         if result.returncode == 0:
